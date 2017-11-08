@@ -1,0 +1,41 @@
+#!/bin/bash
+# Allan McAleavy 2017
+# Login to Array and gather list of hosts and then get performance data for these.
+# 06/11/17 Added Host flag to parse script.
+
+user=<username>
+pass=<password>
+xiv=$1
+stime=00
+end=23
+day=$2
+month=$3
+year=2017
+
+mkdir ${xiv}_host
+POST="http://<INFLUX_DB_SERVER_HERE>:8086/write?db=${xiv}&precision=s"
+
+# Get a list of hosts to parse.
+/usr/bin/xcli -m $xiv -s -u $user -p $pass host_list > ${xiv}_host/${xiv}_host_list.csv
+
+
+HOSTS=`awk '{FS=","; print $1}' ${xiv}_host/${xiv}_host_list.csv |sed 's/"//g' |grep -v Name`
+for i in $HOSTS
+do
+echo "working on $i"
+/usr/bin/xcli -m $xiv -s -u $user -p $pass statistics_get start=${year}-${month}-${day}.0:${stime}:00 count=1440 resolution_unit=minute interval=1 host=${i} > ${xiv}_host/${i}_${month}_${day}_${xiv}.csv
+echo "getting IOPS for $i"
+# Check if we have a sample for the host if not skip.
+
+grep Time ${xiv}_host/${i}_${month}_${day}_${xiv}.csv
+if [ $? = 0 ]
+then
+./graph_xiv_data.pl ${xiv}_host/${i}_${month}_${day}_${xiv}.csv Host > ${xiv}_host/host_batch
+fi
+
+cd  ${xiv}_host
+/usr/bin/curl -i -XPOST ${POST} --data-binary @host_batch
+cd ..
+rm ${xiv}_host/${i}_${month}_${day}_${xiv}.csv
+done
+

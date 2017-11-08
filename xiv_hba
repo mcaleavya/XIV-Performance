@@ -1,0 +1,45 @@
+#!/bin/bash
+# Allan McAleavy 2017 
+# Parse HBA stats from statistics_get command.
+
+user=<username>
+pass=<password>
+xiv=$1
+stime=00
+end=23
+day=$2
+month=$3
+year=2017
+
+
+mkdir ${xiv}_host_port
+
+/usr/bin/xcli -m $xiv -u $user -p $pass host_list > ${xiv}_host_port/${xiv}_fc_list.csv
+
+POST="http://<INFLUX_DB_SERVER_HERE>:8086/write?db=${xiv}&precision=s"
+
+HOSTS=`cat ${xiv}_host_port/${xiv}_fc_list.csv |grep -v Name |awk '{print $1}'`
+echo $HOSTS
+
+for i in $HOSTS
+do
+
+PORTS=`cat ${xiv}_host_port/${xiv}_fc_list.csv |grep -v Name |grep $i  |awk '{print $3}' |sed 's/,/ /g'`
+
+for j in $PORTS
+do
+/usr/bin/xcli -m $xiv -s -u $user -p $pass statistics_get start=${year}-${month}-${day}.0:${stime}:00 count=1440 resolution_unit=minute interval=1 host_fc_port=${j} > ${xiv}_host_port/${j}-${i}_${month}_${day}_${xiv}.csv
+grep Time ${xiv}_host_port/${j}-${i}_${month}_${day}_${xiv}.csv
+if [ $? = 0 ]
+then
+
+perl ./graph_xiv_data.pl ${xiv}_host_port/${j}-${i}_${month}_${day}_${xiv}.csv HPort > ${xiv}_host_port/port_batch
+
+cd ${xiv}_host_port
+/usr/bin/curl -i -XPOST ${POST} --data-binary @port_batch
+cd ..
+fi
+
+rm ${xiv}_host_port/${j}-${i}_${month}_${day}_${xiv}.csv
+done
+done

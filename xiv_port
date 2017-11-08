@@ -1,0 +1,35 @@
+#!/bin/bash
+# Allan McAleavy 2017 
+# Parse array port stats from statistics_get comm
+
+user=<username>
+pass=<password>
+xiv=$1
+stime=00
+end=23
+day=$2
+month=$3
+year=2017
+
+mkdir ${xiv}_port
+
+/usr/bin/xcli -m $xiv -s -u $user -p $pass fc_port_list > ${xiv}_port/${xiv}_fc_list.csv
+
+POST="http://<INFLUX_DB_SERVER_HERE>:8086/write?db=${xiv}&precision=s"
+
+PORTS=`awk '{FS=","; print $1}' ${xiv}_port/${xiv}_fc_list.csv |sed 's/"//g' |grep -v Compon `
+for i in $PORTS
+do
+echo "working on $i"
+/usr/bin/xcli -m $xiv -s -u $user -p $pass statistics_get start=${year}-${month}-${day}.0:${stime}:00 count=1440 resolution_unit=minute interval=1 local_fc_port=${i} > ${xiv}_port/${i}_${month}_${day}_${xiv}.csv
+
+grep Time ${xiv}_port/${i}_${month}_${day}_${xiv}.csv
+if [ $? = 0 ]
+then
+perl ./graph_xiv_data.pl ${xiv}_port/${i}_${month}_${day}_${xiv}.csv Port > ${xiv}_port/port_batch
+fi
+cd ${xiv}_port
+/usr/bin/curl -i -XPOST ${POST} --data-binary @port_batch
+cd ..
+rm {xiv}_port/${i}_${month}_${day}_${xiv}.csv
+done

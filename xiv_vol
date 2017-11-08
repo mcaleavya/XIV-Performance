@@ -1,0 +1,39 @@
+
+#!/bin/bash
+# Allan McAleavy 2017 
+# Parse volume stats from statistics_get comm
+
+user=<username>
+pass=<password>
+xiv=$1
+stime=00
+end=23
+day=$2
+month=$3
+year=2017
+
+mkdir ${xiv}_vol
+
+POST="http://<INFLUX_DB_SERVER_HERE>:8086/write?db=${xiv}&precision=s"
+
+/usr/bin/xcli -m $xiv -s -u $user -p $pass vol_list > ${xiv}_vol/${xiv}_vol_list.csv
+
+# Build list of vols
+#
+HOSTS=`awk '{FS=","; print $1}' ${xiv}_vol/${xiv}_vol_list.csv |sed 's/"//g' |grep -v Name`
+for i in $HOSTS
+do
+echo "working on $i"
+/usr/bin/xcli -m $xiv -s -u $user -p $pass statistics_get start=${year}-${month}-${day}.0:${stime}:00 count=1440 resolution_unit=minute interval=1 vol=${i} > ${xiv}_vol/${i}_${month}_${day}_${xiv}.csv
+
+grep Time ${xiv}_vol/${i}_${month}_${day}_${xiv}.csv
+if [ $? = 0 ]
+then
+perl ./graph_xiv_data.pl ${xiv}_vol/${i}_${month}_${day}_${xiv}.csv Vol > ${xiv}_vol/vol_batch
+fi
+
+cd ${xiv}_vol
+/usr/bin/curl -i -XPOST ${POST} --data-binary @vol_batch
+cd ..
+rm ${xiv}_vol/${i}_${month}_${day}_${xiv}.csv
+done
