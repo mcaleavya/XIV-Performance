@@ -143,11 +143,11 @@ while (<XIV>)
           $write_miss_iops=$list[37]+$list[40]+$list[43]+$list[46];
           $read_mem_hit_iops=$list[49]+$list[52]+$list[55]+$list[58];
 
-          $read_hit_mb=($list[3]+$list[6]+$list[9]+$list[12]) /1024;
-          $read_miss_mb=($list[15]+$list[18]+$list[21]+$list[24]) /1024;
+          $read_hit_mb=($list[3]+$list[6]+$list[9]+$list[12]) /1000;
+          $read_miss_mb=($list[15]+$list[18]+$list[21]+$list[24]) /1000;
 
-          $write_hit_mb=($list[27]+$list[30]+$list[33]+$list[36])/1024;
-          $write_miss_mb=($list[39]+$list[42]+$list[45]+$list[48])/1024;
+          $write_hit_mb=($list[27]+$list[30]+$list[33]+$list[36])/1000;
+          $write_miss_mb=($list[39]+$list[42]+$list[45]+$list[48])/1000;
 
           $total_read_mb=($read_hit_mb+$read_miss_mb);
           $total_write_mb=($write_hit_mb+$write_miss_mb);
