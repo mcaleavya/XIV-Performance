@@ -97,7 +97,6 @@ sub get_read_miss_latency {
           $rmms = $list[20] * ( $list[19] / $total_reads ) if $list[19] ;
           $rmls = $list[17] * ( $list[16] / $total_reads ) if $list[16] ;
           $rmvls = $list[14] * ( $list[13] / $total_reads ) if $list[13];
-
           $rmisslat = ( $rmss + $rmms + $rmls + $rmvls ) / 1000 ;
             }
           else
@@ -114,7 +113,6 @@ sub get_read_hit_latency {
           $rhms = $list[8] * ( $list[7] / $total_reads ) if $list[7] ;
           $rhls = $list[5] * ( $list[4] / $total_reads ) if $list[4] ;
           $rhvls = $list[2] * ( $list[1] / $total_reads ) if $list[1];
-
           $rhisslat = ( $rhss + $rhms + $rhls + $rhvls ) / 1000 ;
           }
           else
@@ -181,13 +179,19 @@ while (<XIV>)
           }
           else
           {
-             $port=lc $name[1];
+             if ( $hpov eq "Array" )
+             {
+               $port=$name[1];
+             }
+             else
+             {
+               $port=lc $name[1];
+             }
              $port=~s/.*\///g;
           }
 
-          if (( $hpov eq "Host" ) || ( $hpov eq "Vol"  ) || ( $hpov eq "Port"))
+          if (( $hpov eq "Host" ) || ( $hpov eq "Vol"  ) || ( $hpov eq "Port" || ( $hpov eq "Array")))
           {
-
                 #IOPS
                 print "XIV" . $hpov . "IO," . $hpov . "IO=$port,type=tiops value=$total_iops $ts\n";
                 print "XIV" . $hpov . "IO," . $hpov . "IO=$port,type=riops value=$total_riops $ts\n";
