@@ -41,7 +41,7 @@ i.e.
 ```
 ./xiv_array <ARRAY> <DAY> <MONTH>
 i.e.
-./xiv_hba TESTXIV 03 11
+./xiv_array TESTXIV 03 11
 ```
 ### If using the array overall view you will need to create a influxdb named ARRAYS and also run hosts.
 ### Please make sure you have UDP port 8086 open to allow the data to get into influx.
