@@ -10,7 +10,7 @@ stime=00
 end=23
 day=$2
 month=$3
-year=2017
+year=2018
 
 mkdir ${xiv}_vol
 
