@@ -1,6 +1,7 @@
 #!/bin/perl
 # Allan McAleavy Created This.
-# November 2017
+# Copyright (c) 2017 Allan McAleavy
+# Licensed under the Apache License, Version 2.0 (the "License")
 #
 
 use strict;
